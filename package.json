@@ -1,0 +1,17 @@
+{
+  "name": "target",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "urls": "node src/URLs_scraper/index.js",
+    "details": "node src/Details_scraper/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "playwright": "^1.53.2",
+    "xlsx": "^0.18.5"
+  }
+}
