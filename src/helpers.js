@@ -29,11 +29,11 @@ export function formatOutput({ urlArray, extraSummary, arraySize = 10 }) {
   }
 }
 
-export function saveResults(output) {
+export function saveResults(output, fileName = "target_urls") {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
   const dir = "URL_scraper_output"
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  const filename = path.join(dir, `target_urls_${timestamp}.json`)
+  const filename = path.join(dir, `${fileName}_${timestamp}.json`)
   fs.writeFileSync(filename, JSON.stringify(output, null, 2))
   return filename
 }
@@ -159,7 +159,6 @@ export async function switchToNextTypeFilter(page) {
 
   // Find the checked index
   const prevIndex = typeOptions.findIndex((o) => o.checked)
-  if (prevIndex === -1) throw new Error("No type is currently checked")
 
   // If we're at the last option, close and return
   if (prevIndex + 1 >= typeOptions.length) {
@@ -169,16 +168,18 @@ export async function switchToNextTypeFilter(page) {
       next: false,
     }
   }
+  if (prevIndex !== -1) {
+    await modal.$eval(`label[for="${typeOptions[prevIndex].id}"]`, (el) =>
+      el.click()
+    )
+    await page.waitForTimeout(1000)
+  }
 
   // Uncheck current and check next
-  await modal.$eval(`label[for="${typeOptions[prevIndex].id}"]`, (el) =>
-    el.click()
-  )
-  await page.waitForTimeout(250)
   await modal.$eval(`label[for="${typeOptions[prevIndex + 1].id}"]`, (el) =>
     el.click()
   )
-  await page.waitForTimeout(250)
+  await page.waitForTimeout(1000)
 
   // STEP 5: Click "Apply" to apply the filter
   const applyBtn = await modal.$('button:has-text("Apply")')

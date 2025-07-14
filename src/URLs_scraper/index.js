@@ -8,23 +8,32 @@ import {
   scrollAndCollect,
   switchToNextTypeFilter,
 } from "../helpers.js"
+import "dotenv/config"
 
 const START_URL =
-  "https://www.target.com/c/kids/-/N-xcoz4Z5zlb2Znq2ic?moveTo=product-list-grid"
-const URLS_PER_ARRAY = 5
-const MAX_TYPES = 3 // Adjust as you wish
+  "https://www.target.com/c/kids/-/N-xcoz4Z5zlb2Zdze4?moveTo=product-list-grid"
+const URLS_PER_ARRAY = 50
+const MAX_TYPES = 100 // Adjust as you wish
+const headless = process.env.HEADLESS === "true"
+let firstType = null
+let lastType = null
 
 async function main() {
-  const browser = await chromium.launch({ headless: false })
+  const browser = await chromium.launch({ headless: headless })
   const page = await browser.newPage()
+  console.log("Open New Page")
   await page.goto(START_URL, { waitUntil: "domcontentloaded" })
 
   let allProducts = []
   let currentTypeIndex = 0
   let typeSwitchResult = await switchToNextTypeFilter(page) // Pass true for first type
 
+  firstType = typeSwitchResult?.current || "unknown"
+
   while (true) {
     currentTypeIndex++
+    lastType = typeSwitchResult?.current || lastType
+
     let pageCount = 1
 
     while (true) {
@@ -74,7 +83,11 @@ async function main() {
     },
   })
 
-  const filePath = saveResults(output)
+  const fileName = `${firstType}---${currentTypeIndex}---${lastType}`.replace(
+    /[\\/:*?"<>|]+/g,
+    "_"
+  )
+  const filePath = saveResults(output, fileName)
   console.log(
     `Saved ${output.summary.totalProducts} unique products to: ${filePath}`
   )
